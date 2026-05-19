@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="PointUp.Application/PointUp.Application.csproj" />
+  <Project Path="PointUp.Core/PointUp.Core.csproj" />
+  <Project Path="PointUp.Infrastructure/PointUp.Infrastructure.csproj" />
+  <Project Path="PointUp.Tests/PointUp.Tests.csproj" />
+  <Project Path="PointUp.Wpf/PointUp.Wpf.csproj" />
+</Solution>

@@ -128,7 +128,7 @@ public partial class OverlayWindow : Window
             IsHitTestVisible = false,
             Visibility = Visibility.Collapsed
         };
-        Panel.SetZIndex(_cursorCircle, int.MaxValue);
+        System.Windows.Controls.Panel.SetZIndex(_cursorCircle, int.MaxValue);
         Canvas.SetLeft(_cursorCircle, -CursorCircleSize);
         Canvas.SetTop(_cursorCircle, -CursorCircleSize);
         DrawingCanvas.Children.Add(_cursorCircle);

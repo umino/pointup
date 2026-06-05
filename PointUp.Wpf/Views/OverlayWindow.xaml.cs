@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -37,6 +38,8 @@ public partial class OverlayWindow : Window
         public long CreatedAtMs { get; set; }
     }
 
+    private const double CursorCircleSize = 20;
+
     private readonly List<StrokeVisual> _strokes = [];
     private StrokeVisual? _currentStroke;
     private Point _lastPoint;
@@ -45,6 +48,7 @@ public partial class OverlayWindow : Window
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
     private readonly DispatcherTimer _fadeTimer;
     private Brush _lineBrush = Brushes.OrangeRed;
+    private Ellipse? _cursorCircle;
 
     public OverlayWindow(OverlayViewModel viewModel)
     {
@@ -79,6 +83,8 @@ public partial class OverlayWindow : Window
 
         SetClickThrough(!_viewModel.IsPointingEnabled);
         ApplySettings();
+        InitCursorCircle();
+        UpdatePointingModeCursor(_viewModel.IsPointingEnabled);
     }
 
     private void SetClickThrough(bool enabled)
@@ -105,6 +111,34 @@ public partial class OverlayWindow : Window
         {
             _lineBrush = Brushes.OrangeRed;
         }
+
+        if (_cursorCircle != null)
+            _cursorCircle.Stroke = _lineBrush;
+    }
+
+    private void InitCursorCircle()
+    {
+        _cursorCircle = new Ellipse
+        {
+            Width = CursorCircleSize,
+            Height = CursorCircleSize,
+            Stroke = _lineBrush,
+            StrokeThickness = 2,
+            Fill = Brushes.Transparent,
+            IsHitTestVisible = false,
+            Visibility = Visibility.Collapsed
+        };
+        Panel.SetZIndex(_cursorCircle, int.MaxValue);
+        Canvas.SetLeft(_cursorCircle, -CursorCircleSize);
+        Canvas.SetTop(_cursorCircle, -CursorCircleSize);
+        DrawingCanvas.Children.Add(_cursorCircle);
+    }
+
+    private void UpdatePointingModeCursor(bool isOn)
+    {
+        Cursor = isOn ? Cursors.None : Cursors.Arrow;
+        if (_cursorCircle != null)
+            _cursorCircle.Visibility = isOn ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -113,6 +147,7 @@ public partial class OverlayWindow : Window
 
         bool isOn = _viewModel.IsPointingEnabled;
         SetClickThrough(!isOn);
+        UpdatePointingModeCursor(isOn);
 
         if (!isOn && _currentStroke != null)
             FinalizeCurrentStroke();
@@ -133,9 +168,16 @@ public partial class OverlayWindow : Window
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        var pos = e.GetPosition(DrawingCanvas);
+
+        if (_viewModel.IsPointingEnabled && _cursorCircle != null)
+        {
+            Canvas.SetLeft(_cursorCircle, pos.X - CursorCircleSize / 2);
+            Canvas.SetTop(_cursorCircle, pos.Y - CursorCircleSize / 2);
+        }
+
         if (_currentStroke == null || !_viewModel.IsPointingEnabled) return;
 
-        var pos = e.GetPosition(DrawingCanvas);
         double dist = (pos - _lastPoint).Length;
         if (dist < 2.0) return;
 
@@ -217,5 +259,7 @@ public partial class OverlayWindow : Window
         Mouse.Capture(null);
         DrawingCanvas.Children.Clear();
         _strokes.Clear();
+        if (_cursorCircle != null)
+            DrawingCanvas.Children.Add(_cursorCircle);
     }
 }

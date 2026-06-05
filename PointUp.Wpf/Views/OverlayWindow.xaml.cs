@@ -136,7 +136,7 @@ public partial class OverlayWindow : Window
 
     private void UpdatePointingModeCursor(bool isOn)
     {
-        Cursor = isOn ? Cursors.None : Cursors.Arrow;
+        Cursor = isOn ? System.Windows.Input.Cursors.None : System.Windows.Input.Cursors.Arrow;
         if (_cursorCircle != null)
             _cursorCircle.Visibility = isOn ? Visibility.Visible : Visibility.Collapsed;
     }

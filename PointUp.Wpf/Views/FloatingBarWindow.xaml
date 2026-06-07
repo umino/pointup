@@ -1,0 +1,81 @@
+<Window x:Class="PointUp.Wpf.Views.FloatingBarWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight">
+    <Window.Resources>
+        <Style x:Key="BarBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCFFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#55FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="#D9111111" CornerRadius="10" Padding="2">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+            <!-- ドラッグハンドル -->
+            <Border x:Name="DragHandle" Cursor="SizeAll" Padding="8,6" Background="Transparent"
+                    MouseLeftButtonDown="OnDragHandleDown" ToolTip="ドラッグして移動">
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Width="10">
+                    <Rectangle Height="2" Width="10" Fill="#66FFFFFF" RadiusX="1" RadiusY="1" Margin="0,1"/>
+                    <Rectangle Height="2" Width="10" Fill="#66FFFFFF" RadiusX="1" RadiusY="1" Margin="0,1"/>
+                    <Rectangle Height="2" Width="10" Fill="#66FFFFFF" RadiusX="1" RadiusY="1" Margin="0,1"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 区切り線 -->
+            <Rectangle Width="1" Height="18" Fill="#33FFFFFF" Margin="2,0"/>
+
+            <!-- モード解除ボタン -->
+            <Button x:Name="OffButton" Style="{StaticResource BarBtn}"
+                    Click="OnOffClick" ToolTip="描画モード解除 (Ctrl+Shift+D)">
+                <TextBlock>
+                    <Run Text="■ " Foreground="#FFFF3B30" FontSize="10" BaselineAlignment="Center"/>
+                    <Run Text="OFF" FontSize="12"/>
+                </TextBlock>
+            </Button>
+
+            <!-- 区切り線 -->
+            <Rectangle Width="1" Height="18" Fill="#33FFFFFF" Margin="2,0"/>
+
+            <!-- 全消去ボタン -->
+            <Button Style="{StaticResource BarBtn}" Content="✕ 消去"
+                    Click="OnClearClick" ToolTip="全消去 (Ctrl+Shift+C)"/>
+
+            <!-- 区切り線 -->
+            <Rectangle Width="1" Height="18" Fill="#33FFFFFF" Margin="2,0"/>
+
+            <!-- 無制限切り替えボタン -->
+            <Button x:Name="InfiniteButton" Style="{StaticResource BarBtn}" Content="∞"
+                    Click="OnInfiniteClick" ToolTip="線を消さない"/>
+
+        </StackPanel>
+    </Border>
+</Window>

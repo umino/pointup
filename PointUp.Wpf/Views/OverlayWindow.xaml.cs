@@ -27,9 +27,16 @@ public partial class OverlayWindow : Window
 
     [DllImport("user32.dll")] private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
     [DllImport("user32.dll")] private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+    private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOACTIVATE = 0x0010;
 
     private IntPtr _hwnd;
     private readonly OverlayViewModel _viewModel;
+    private readonly FloatingBarWindow _floatingBar;
 
     private class StrokeVisual
     {
@@ -46,10 +53,11 @@ public partial class OverlayWindow : Window
     private readonly DispatcherTimer _fadeTimer;
     private Brush _lineBrush = Brushes.OrangeRed;
 
-    public OverlayWindow(OverlayViewModel viewModel)
+    public OverlayWindow(OverlayViewModel viewModel, FloatingBarWindow floatingBar)
     {
         InitializeComponent();
         _viewModel = viewModel;
+        _floatingBar = floatingBar;
 
         Left = SystemParameters.VirtualScreenLeft;
         Top = SystemParameters.VirtualScreenTop;
@@ -78,6 +86,8 @@ public partial class OverlayWindow : Window
         SetWindowLong(_hwnd, GWL_EXSTYLE, style);
 
         SetClickThrough(!_viewModel.IsPointingEnabled);
+        if (_viewModel.IsPointingEnabled)
+            _floatingBar.Show();
         ApplySettings();
     }
 
@@ -114,13 +124,22 @@ public partial class OverlayWindow : Window
         bool isOn = _viewModel.IsPointingEnabled;
         SetClickThrough(!isOn);
 
-        if (!isOn && _currentStroke != null)
-            FinalizeCurrentStroke();
+        if (isOn)
+            _floatingBar.Show();
+        else
+        {
+            _floatingBar.Hide();
+            if (_currentStroke != null)
+                FinalizeCurrentStroke();
+        }
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         if (!_viewModel.IsPointingEnabled) return;
+
+        var screenPos = PointToScreen(e.GetPosition(this));
+        if (IsOverFloatingBar(screenPos)) return;
 
         _lastPoint = e.GetPosition(DrawingCanvas);
         _lastTimestampMs = _stopwatch.ElapsedMilliseconds;
@@ -129,6 +148,15 @@ public partial class OverlayWindow : Window
 
         Mouse.Capture(this);
         e.Handled = true;
+    }
+
+    private bool IsOverFloatingBar(Point screenPos)
+    {
+        if (!_floatingBar.IsVisible) return false;
+        return screenPos.X >= _floatingBar.Left &&
+               screenPos.X <= _floatingBar.Left + _floatingBar.ActualWidth &&
+               screenPos.Y >= _floatingBar.Top &&
+               screenPos.Y <= _floatingBar.Top + _floatingBar.ActualHeight;
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -178,6 +206,14 @@ public partial class OverlayWindow : Window
         _currentStroke.CreatedAtMs = _stopwatch.ElapsedMilliseconds;
         _strokes.Add(_currentStroke);
         _currentStroke = null;
+        BringFloatingBarToFront();
+    }
+
+    private void BringFloatingBarToFront()
+    {
+        var hwnd = new WindowInteropHelper(_floatingBar).Handle;
+        if (hwnd != IntPtr.Zero)
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
     }
 
     private void OnFadeTick(object? sender, EventArgs e)

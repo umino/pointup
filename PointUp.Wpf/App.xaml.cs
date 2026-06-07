@@ -26,6 +26,7 @@ public partial class App
                 services.AddTransient<CalculateVelocityThicknessUseCase>();
                 services.AddTransient<StrokeLifetimeUseCase>();
                 services.AddSingleton<OverlayViewModel>();
+                services.AddSingleton<FloatingBarWindow>();
                 services.AddSingleton<OverlayWindow>();
                 services.AddSingleton<TrayIconService>();
             })

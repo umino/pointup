@@ -16,6 +16,9 @@ public partial class OverlayViewModel : ObservableObject
     [ObservableProperty]
     private bool _isPointingEnabled;
 
+    [ObservableProperty]
+    private bool _isLifetimeUnlimited;
+
     public AppSettings Settings => _settingsService.Settings;
 
     public event EventHandler? ClearRequested;
@@ -39,6 +42,9 @@ public partial class OverlayViewModel : ObservableObject
 
     [RelayCommand]
     private void Clear() => ClearRequested?.Invoke(this, EventArgs.Empty);
+
+    [RelayCommand]
+    private void ToggleLifetime() => IsLifetimeUnlimited = !IsLifetimeUnlimited;
 
     [RelayCommand]
     private void OpenSettingsFile()
@@ -72,6 +78,7 @@ public partial class OverlayViewModel : ObservableObject
 
     public (double Opacity, bool Expired) CalculateLifetime(long ageMs)
     {
+        if (IsLifetimeUnlimited) return (1.0, false);
         var s = _settingsService.Settings;
         return _lifetimeUseCase.Calculate(ageMs, s.LifetimeMs, s.FadeMs);
     }

@@ -6,6 +6,10 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using PointUp.Wpf.ViewModels;
 using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
+using Brushes = System.Windows.Media.Brushes;
+using WinFormsColorDialog = System.Windows.Forms.ColorDialog;
+using WinFormsDialogResult = System.Windows.Forms.DialogResult;
 
 namespace PointUp.Wpf.Views;
 
@@ -29,6 +33,7 @@ public partial class FloatingBarWindow : Window
         Top = 24;
 
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        viewModel.SettingsReloaded += (_, _) => UpdateColorSwatch();
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -40,6 +45,7 @@ public partial class FloatingBarWindow : Window
         SetWindowLong(hwnd, GWL_EXSTYLE, style);
 
         UpdateInfiniteButton();
+        UpdateColorSwatch();
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -71,4 +77,35 @@ public partial class FloatingBarWindow : Window
 
     private void OnInfiniteClick(object sender, RoutedEventArgs e)
         => _viewModel.ToggleLifetimeCommand.Execute(null);
+
+    private void OnColorClick(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new WinFormsColorDialog { FullOpen = true };
+
+        try
+        {
+            var wpfColor = (Color)ColorConverter.ConvertFromString(_viewModel.Settings.LineColor);
+            dialog.Color = System.Drawing.Color.FromArgb(wpfColor.A, wpfColor.R, wpfColor.G, wpfColor.B);
+        }
+        catch { }
+
+        if (dialog.ShowDialog() == WinFormsDialogResult.OK)
+        {
+            var c = dialog.Color;
+            _viewModel.SetLineColorCommand.Execute($"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}");
+        }
+    }
+
+    private void UpdateColorSwatch()
+    {
+        try
+        {
+            var color = (Color)ColorConverter.ConvertFromString(_viewModel.Settings.LineColor);
+            ColorSwatch.Fill = new SolidColorBrush(color);
+        }
+        catch
+        {
+            ColorSwatch.Fill = Brushes.OrangeRed;
+        }
+    }
 }

@@ -76,6 +76,15 @@
             <Button x:Name="InfiniteButton" Style="{StaticResource BarBtn}" Content="∞"
                     Click="OnInfiniteClick" ToolTip="線を消さない"/>
 
+            <!-- 区切り線 -->
+            <Rectangle Width="1" Height="18" Fill="#33FFFFFF" Margin="2,0"/>
+
+            <!-- カラーピッカーボタン -->
+            <Button Style="{StaticResource BarBtn}" Click="OnColorClick"
+                    ToolTip="線の色を変更" Padding="8,5">
+                <Ellipse x:Name="ColorSwatch" Width="14" Height="14"/>
+            </Button>
+
         </StackPanel>
     </Border>
 </Window>

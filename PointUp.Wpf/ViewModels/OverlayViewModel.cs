@@ -47,6 +47,14 @@ public partial class OverlayViewModel : ObservableObject
     private void ToggleLifetime() => IsLifetimeUnlimited = !IsLifetimeUnlimited;
 
     [RelayCommand]
+    private void SetLineColor(string colorHex)
+    {
+        _settingsService.Settings.LineColor = colorHex;
+        _settingsService.Save();
+        SettingsReloaded?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
     private void OpenSettingsFile()
     {
         var path = System.IO.Path.Combine(
